@@ -3,7 +3,7 @@
 # Standard DDEV add-on setup code taken from official DDEV add-ons.
 setup() {
   set -eu -o pipefail
-  export GITHUB_REPO=Metadrop/ddev-aljibe-assistant
+  export GITHUB_REPO=ddev-drupal-contrib-mkdocs
   TEST_BREW_PREFIX="$(brew --prefix 2>/dev/null || true)"
   export BATS_LIB_PATH="${BATS_LIB_PATH}:${TEST_BREW_PREFIX}/lib:/usr/lib/bats"
   bats_load_library bats-assert
@@ -40,9 +40,30 @@ teardown() {
   echo "# Teardown complete" >&3
 }
 
+check_layout() {
+  echo "Checking Drupal contrib MkDocs layout" >&3
+  run test -f mkdocs.yml
+  assert_success
+  run test -f docs/index.md
+  assert_success
+  run test ! -d docs/docs
+  assert_success
+  run test -f .ddev/mkdocs/mkdocs.yml
+  assert_success
+}
+
 health_checks() {
   echo "Checking mkdocs health" >&3
   run ddev exec wget http://mkdocs:8000 -q -O -
+  assert_output --partial "Welcome to MkDocs"
+  https_port=$(ddev exec -s web printenv DDEV_ROUTER_HTTPS_PORT)
+  if [ "${https_port}" = "443" ]; then
+    docs_url="https://docs.${PROJNAME}.ddev.site/"
+  else
+    docs_url="https://docs.${PROJNAME}.ddev.site:${https_port}/"
+  fi
+  run curl -fk "${docs_url}"
+  assert_success
   assert_output --partial "Welcome to MkDocs"
 }
 
@@ -59,6 +80,8 @@ check_build_mkdocs() {
   echo "Installed add-on from directory, restarting ddev" >&3
   ddev restart -y
   echo "Testing mkdocs" >&3
+
+  check_layout
 
   health_checks
 

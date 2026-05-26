@@ -1,4 +1,4 @@
-name: mkdocs
+name: drupal-contrib-mkdocs
 
 project_files:
   - docker-compose.mkdocs.yaml
@@ -7,7 +7,17 @@ project_files:
 
 post_install_actions:
   - test -d ${DDEV_APPROOT}/docs || mkdir -p ${DDEV_APPROOT}/docs
-  - test -d ${DDEV_APPROOT}/docs/docs || mkdir -p ${DDEV_APPROOT}/docs/docs
-  - test -f ${DDEV_APPROOT}/docs/mkdocs.yml || cp docs/mkdocs.yml ${DDEV_APPROOT}/docs/mkdocs.yml
-  - test -f ${DDEV_APPROOT}/docs/docs/index.md || echo "## Welcome to MkDocs" > ${DDEV_APPROOT}/docs/docs/index.md
-  - echo "Mkdocs install finished. Please restart ddev with 'ddev restart'"
+  - test -f ${DDEV_APPROOT}/mkdocs.yml || cp docs/mkdocs.yml ${DDEV_APPROOT}/mkdocs.yml
+  - test -f ${DDEV_APPROOT}/docs/index.md || printf '%s\n' '## Welcome to MkDocs' > ${DDEV_APPROOT}/docs/index.md
+  - |
+    docs_host="docs.${DDEV_SITENAME}.${DDEV_TLD}"
+    if [ "${DDEV_ROUTER_HTTPS_PORT}" = "443" ]; then
+      https_url="https://${docs_host}"
+      http_url="http://${docs_host}"
+    else
+      https_url="https://${docs_host}:${DDEV_ROUTER_HTTPS_PORT}"
+      http_url="http://${docs_host}:${DDEV_ROUTER_HTTP_PORT}"
+    fi
+    echo "Drupal contrib MkDocs add-on installed. Restart with 'ddev restart', then open:"
+    echo "  ${https_url}"
+    echo "  ${http_url}"

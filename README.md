@@ -1,77 +1,67 @@
-[![tests](https://github.com/Metadrop/ddev-mkdocs/actions/workflows/tests.yml/badge.svg)](https://github.com/Metadrop/ddev-mkdocs/actions/workflows/tests.yml) ![project is maintained](https://img.shields.io/maintenance/yes/2026.svg)
-![GitHub Release](https://img.shields.io/github/v/release/Metadrop/ddev-mkdocs)
+# DDEV Drupal contrib MkDocs add-on
 
-* [What is DDEV Mkdocs Add-on?](#what-is-ddev-mkdocs-add-on)
-* [Getting started](#getting-started)
-* [Using mkdocs](#using-mkdocs)
-  * [Configuration](#configuration)
-  * [Write your own documentation](#write-your-own-documentation)
-  * [View the documentation](#view-the-documentation)
+[![tests](https://github.com/Metadrop/ddev-drupal-contrib-mkdocs/actions/workflows/tests.yml/badge.svg)](https://github.com/Metadrop/ddev-drupal-contrib-mkdocs/actions/workflows/tests.yml)
 
-## What is DDEV MkDocs Add-on?
+A [DDEV](https://ddev.readthedocs.io) add-on for building and previewing [MkDocs](https://www.mkdocs.org/) documentation in **Drupal contrib** module and theme projects.
 
-This repository provides a [DDEV](https://ddev.readthedocs.io) add-on for the [mkdocs](https://www.mkdocs.org/) service, based on [Metadrop MkDocs Docker image](https://github.com/Metadrop/docker-mkdocs).
-
-It is part of the [DDEV Aljibe](https://github.com/Metadrop/ddev-aljibe) ecosystem, but it can used separately with any DDEV project.
-
-It includes [MkDocs Material theme](https://squidfunk.github.io/mkdocs-material/) pre-installed.
-
-MkDocs is a fast, simple and downright gorgeous static site generator that's geared towards building project documentation. Documentation source files are written in Markdown, and configured with a single YAML configuration file.
-
-This addon just provides the basics to view MkDocs static site from docs/ folder on your project.
+Run DDEV from the extension root (where the `.info.yml` file lives). MkDocs uses the standard layout: `mkdocs.yml` at the project root and Markdown sources in `docs/`.
 
 ## Getting started
 
-For DDEV v1.23.5 or above run
+For DDEV v1.23.5 or above:
 
 ```shell
-ddev add-on get Metadrop/ddev-mkdocs
+ddev add-on get s-ayers/ddev-drupal-contrib-mkdocs
 ```
 
-For earlier versions of DDEV run
+For earlier versions of DDEV:
 
 ```shell
-ddev get Metadrop/ddev-mkdocs
+ddev get s-ayers/ddev-drupal-contrib-mkdocs
 ```
 
-After that you need to restart the ddev project:
+Restart the project:
 
 ```shell
 ddev restart
 ```
 
+## Project layout
+
+After install (only missing files are created):
+
+```
+my_module/
+├── mkdocs.yml          # MkDocs config (not overwritten if present)
+├── docs/
+│   └── index.md        # Home page (not overwritten if present)
+└── .ddev/
+    └── mkdocs/
+        └── mkdocs.yml  # Add-on template copy
+```
+
+The add-on does **not** create a nested `docs/docs/` directory. It never overwrites an existing `mkdocs.yml` or `docs/index.md`.
+
+If you previously used a layout with `docs/mkdocs.yml` and content under `docs/docs/`, move `mkdocs.yml` to the project root and your Markdown files into `docs/` manually.
+
 ## Using MkDocs
 
-### What can be done?
+The service uses [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) with PHP syntax highlighting suitable for Drupal code samples.
 
-MkDocs provides:
+```shell
+ddev mkdocs build
+```
 
-  - Syntax highlighting
-  - Search functionality
-  - Navigation
-  - Elements like tabs, buttons, grids, messages boxes or admonitions, etc
-  - Mermaid diagrams
-  - And more!
+View the site at `https://docs.<project_name>.ddev.site` (HTTPS) or `http://docs.<project_name>.ddev.site` (HTTP), where `<project_name>` is your DDEV sitename. If DDEV uses alternate router ports because 80/443 are busy (see [port conflict](https://ddev.com/s/port-conflict)), append the port the same way as the main site, e.g. `https://docs.<project_name>.ddev.site:33001`. Run `ddev describe` for the authoritative URLs. The add-on registers `docs.<sitename>` in `additional_hostnames` on install.
 
-
-Example:
-
-![](./imgs/mkdocs-examples.png)
-
+The `mkdocs` service runs `mkdocs serve` with live reload. After you change Markdown under `docs/`, the site should rebuild and the browser should refresh. If it does not, run `ddev logs -s mkdocs` while saving a file; you should see a rebuild. On Docker Desktop for Mac, `WATCHDOG_FORCE_POLLING=true` is set to improve file watching across the bind mount.
 
 ### Configuration
 
-By default, MkDocs addon show docs from `/docs` folder inside your project. This can be updated in docker-compose.mkdocs.yaml as needed.
+The MkDocs container mounts the **project root** (`$DDEV_APPROOT`), so `mkdocs.yml` and the `docs/` folder resolve as MkDocs expects. Change the mount or `working_dir` in `docker-compose.mkdocs.yaml` only if you use a non-standard layout.
 
-Also this addon uses ports 9004 and 9005 to view documentation, this can be updated in docker-compose.mkdocs.yaml too.
+### Further reading
 
-### Write your own documentation
-
-To start building your docs you can read the [Mkdocs getting started guide](https://www.mkdocs.org/getting-started/) and for more advanced functionalities here is the [Mkdocs user guide](https://www.mkdocs.org/user-guide/).
-
-Also, check [Material for MkDocs reference documentation].
-
-
-### View the documentation
-
-MkDocs documentation can be accessed in https://${PROJECT_NAME}.ddev.site:9005
+- [MkDocs getting started](https://www.mkdocs.org/getting-started/)
+- [MkDocs user guide](https://www.mkdocs.org/user-guide/)
+- [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)

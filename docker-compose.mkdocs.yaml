@@ -4,11 +4,14 @@ services:
     container_name: "ddev-${DDEV_SITENAME}-mkdocs"
     image: squidfunk/mkdocs-material:latest
     environment:
-      - VIRTUAL_HOST=$DDEV_HOSTNAME
-      - HTTP_EXPOSE=9004:8000
-      - HTTPS_EXPOSE=9005:8000
+      - VIRTUAL_HOST=docs.${DDEV_SITENAME}.${DDEV_TLD}
+      - HTTP_EXPOSE=${DDEV_ROUTER_HTTP_PORT}:8000
+      - HTTPS_EXPOSE=${DDEV_ROUTER_HTTPS_PORT}:8000
+      - WATCHDOG_FORCE_POLLING=true
+    # --livereload: required with click 8.3+ (mkdocs#4032); default serve often skips watching.
+    command: ["serve", "--dev-addr=0.0.0.0:8000", "--livereload"]
     volumes:
-      - $DDEV_APPROOT/docs:/docs
+      - $DDEV_APPROOT:/docs
       - .:/mnt/ddev_config:ro
       - ddev-global-cache:/mnt/ddev-global-cache
     user:  '$DDEV_UID:$DDEV_GID'
